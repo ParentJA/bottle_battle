@@ -1,0 +1,7 @@
+# Directories...
+bower_components/
+node_modules/
+static/
+
+# Files...
+www/app/scripts.js
