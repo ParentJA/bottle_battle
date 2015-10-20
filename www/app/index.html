@@ -25,9 +25,9 @@
     </div>
     <div id="navbar-content" class="collapse navbar-collapse">
       <ul class="nav navbar-nav" ng-if="hasUser()">
-        <!--<li ng-class="{active: $state.is('meals.pantry')}">
-          <a ui-sref="meals.pantry">Pantry</a>
-        </li>-->
+        <li ng-class="{active: $state.is('my.events')}">
+          <a ui-sref="my.events">Events</a>
+        </li>
       </ul>
       <div class="navbar-right" ng-if="hasUser()">
         <p class="navbar-text">Logged in as <span ng-bind="getUser().first_name"></span></p>
