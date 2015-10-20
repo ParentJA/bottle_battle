@@ -15,4 +15,10 @@ urlpatterns = [
     # url(r'^api/v1/meals/', include('meals.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^admin/', include(admin.site.urls)),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
+
+# Serves static files in development environment...
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# Serves media files in development environment...
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
