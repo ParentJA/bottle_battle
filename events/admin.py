@@ -27,8 +27,8 @@ class EventBottleAdmin(admin.TabularInline):
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
-    fields = ('name',)
-    ordering = ('name',)
+    fields = ('name', 'schedule')
+    ordering = ('name', 'schedule')
     inlines = (EventHostAdmin, EventAttendeeAdmin, EventBottleAdmin)
 
 
