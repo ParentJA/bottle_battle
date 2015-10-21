@@ -8,21 +8,21 @@
   }
 
   function UiRouterConfig($stateProvider, $urlRouterProvider) {
-    /*$stateProvider
-      .state("meals", {
-        url: "/meals",
+    $stateProvider
+      .state("my", {
+        url: "/my",
         template: "<div ui-view></div>",
         resolve: {
-          dishes: function (dishesModel, loadDishesService) {
-            if (_.isEmpty(dishesModel.getDishes())) {
-              return loadDishesService();
+          events: function (eventsModel, loadEventsService) {
+            if (_.isEmpty(eventsModel.getEvents())) {
+              return loadEventsService();
             }
 
-            return dishesModel;
+            return eventsModel;
           }
         },
         abstract: true
-      });*/
+      });
 
     //Default state...
     $urlRouterProvider.otherwise("/");
