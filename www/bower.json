@@ -1,12 +1,17 @@
 {
-  "name": "Bottle Battle",
-  "version": "0.0.0",
+  "name": "bottle_battle",
+  "version": "0.1.0",
   "authors": [
-    "jason.a.parent@gmail.com (Jason Parent)"
+    "Jason Parent <jason.a.parent@gmail.com>"
   ],
-  "description": "",
+  "description": "A tournament style booze tasting app.",
   "main": "index.html",
+  "moduleType": [],
+  "keywords": [
+    "beer", "bourbon", "wine", "tasting"
+  ],
   "license": "MIT",
+  "homepage": "http://bottlebattle.com",
   "ignore": [
     "**/.*",
     "node_modules",
@@ -15,18 +20,19 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "~1.4.3",
-    "bootstrap": "~3.3.5",
+    "angular": "~1.4.7",
     "jquery": "~2.1.4",
+    "bootstrap": "~3.3.5",
     "lodash": "~3.10.1",
-    "restangular": "~1.5.1",
-    "ui-router": "~0.2.15",
-    "fontawesome": "~4.4.0",
-    "moment": "~2.10.6"
+    "bootswatch": "~3.3.5+4",
+    "font-awesome": "fontawesome#~4.4.0",
+    "moment": "~2.10.6",
+    "angular-cookies": "~1.4.7",
+    "angular-bootstrap": "~0.14.3",
+    "angular-sanitize": "~1.4.7",
+    "angular-animate": "~1.4.7"
   },
   "devDependencies": {
-    "angular-cookies": "~1.4.7",
-    "angular-bootstrap": "~0.14.2",
-    "bootswatch": "~3.3.5+4"
+    "angular-mocks": "~1.4.7"
   }
 }

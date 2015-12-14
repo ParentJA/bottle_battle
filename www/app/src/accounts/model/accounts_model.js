@@ -11,23 +11,23 @@
     };
 
     function clearUser() {
-      $cookies.remove("authenticatedUser");
+      $cookies.remove("bottle_battle:authenticatedUser");
     }
 
     function getUser() {
-      if (!$cookies.get("authenticatedUser")) {
+      if (!$cookies.get("bottle_battle:authenticatedUser")) {
         return undefined;
       }
 
-      return JSON.parse($cookies.get("authenticatedUser"));
+      return JSON.parse($cookies.get("bottle_battle:authenticatedUser"));
     }
 
     function hasUser() {
-      return !!$cookies.get("authenticatedUser");
+      return !!$cookies.get("bottle_battle:authenticatedUser");
     }
 
     function setUser(data) {
-      $cookies.put("authenticatedUser", JSON.stringify(data.user));
+      $cookies.put("bottle_battle:authenticatedUser", JSON.stringify(data.user));
     }
 
     return service;

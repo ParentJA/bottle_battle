@@ -9,17 +9,17 @@
     var bottles = [];
 
     var service = {
-      getEvents: function getEvents() {
-        return events;
-      },
-      getHosts: function getHosts() {
-        return hosts;
-      },
       getAttendees: function getAttendees() {
         return attendees;
       },
       getBottles: function getBottles() {
         return bottles;
+      },
+      getEvents: function getEvents() {
+        return events;
+      },
+      getHosts: function getHosts() {
+        return hosts;
       },
       update: function update(data) {
         var users = data.users;
