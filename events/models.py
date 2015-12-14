@@ -8,43 +8,56 @@ AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL')
 
 
 class Event(models.Model):
+    """A happening that occurs in a specific place at a certain time."""
+
     name = models.CharField(max_length=255)
-    schedule = models.DateTimeField()
+    description = models.TextField()
+
+    # One or more users hosting the event...
     hosts = models.ManyToManyField(
         AUTH_USER_MODEL,
         through='EventHost',
         through_fields=('event', 'user'),
-        related_name='hosted_events'
+        related_name='events_hosted'
     )
-    attendees = models.ManyToManyField(
+
+    # One or more users attending the event...
+    guests = models.ManyToManyField(
         AUTH_USER_MODEL,
-        through='EventAttendee',
+        through='EventGuest',
         through_fields=('event', 'user'),
-        related_name='attended_events'
+        related_name='events_attended'
     )
-    bottles = models.ManyToManyField('events.Bottle', through='EventBottle', through_fields=('event', 'bottle'))
+
+    class Meta:
+        default_related_name = 'events'
+        ordering = 'name',
 
     def __unicode__(self):
         return self.name
 
 
 class EventHost(models.Model):
+    """A user who starts an event."""
+
     event = models.ForeignKey('events.Event')
     user = models.ForeignKey(AUTH_USER_MODEL)
 
-
-class EventAttendee(models.Model):
-    event = models.ForeignKey('events.Event')
-    user = models.ForeignKey(AUTH_USER_MODEL)
-
-
-class Bottle(models.Model):
-    name = models.CharField(max_length=255)
+    class Meta:
+        default_related_name = 'event_hosts'
 
     def __unicode__(self):
-        return self.name
+        return '{} is hosting {}'.format(self.user, self.event)
 
 
-class EventBottle(models.Model):
+class EventGuest(models.Model):
+    """A user who joins an event."""
+
     event = models.ForeignKey('events.Event')
-    bottle = models.ForeignKey('events.Bottle')
+    user = models.ForeignKey(AUTH_USER_MODEL)
+
+    class Meta:
+        default_related_name = 'event_guests'
+
+    def __unicode__(self):
+        return '{} is attending {}'.format(self.user, self.event)

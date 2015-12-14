@@ -4,16 +4,10 @@ __author__ = 'jason.a.parent@gmail.com (Jason Parent)'
 from rest_framework import serializers
 
 # Local imports...
-from .models import Bottle, Event
+from .models import Event
 
 
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = ('id', 'name', 'hosts', 'attendees', 'bottles')
-
-
-class BottleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Bottle
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'description', 'guests', 'hosts')

@@ -12,7 +12,7 @@ admin.autodiscover()
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),
     url(r'^accounts/', include('accounts.urls')),
-    url(r'^api/v1/', include('events.urls')),
+    url(r'^api/v1/events/', include('events.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^admin/', include(admin.site.urls)),
 ]

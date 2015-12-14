@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 
 # Local imports...
-from .models import Bottle, Event
+from .models import Event
 
 User = get_user_model()
 
@@ -15,24 +15,13 @@ class EventHostAdmin(admin.TabularInline):
     extra = 1
 
 
-class EventAttendeeAdmin(admin.TabularInline):
-    model = Event.attendees.through
-    extra = 1
-
-
-class EventBottleAdmin(admin.TabularInline):
-    model = Event.bottles.through
+class EventGuestAdmin(admin.TabularInline):
+    model = Event.guests.through
     extra = 1
 
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
-    fields = ('name', 'schedule')
-    ordering = ('name', 'schedule')
-    inlines = (EventHostAdmin, EventAttendeeAdmin, EventBottleAdmin)
-
-
-@admin.register(Bottle)
-class BottleAdmin(admin.ModelAdmin):
-    fields = ('name',)
+    fields = ('name', 'description')
     ordering = ('name',)
+    inlines = (EventHostAdmin, EventGuestAdmin)

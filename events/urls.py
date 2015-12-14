@@ -7,5 +7,9 @@ from django.conf.urls import url
 from .views import EventAPIView
 
 urlpatterns = [
-    url(r'^events/$', EventAPIView.as_view()),
+    url(r'^(?P<pk>\d+)/$', EventAPIView.as_view({'get': 'retrieve'})),
+    url(r'^$', EventAPIView.as_view({
+        'get': 'list',
+        'post': 'create'
+    })),
 ]

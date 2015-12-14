@@ -210,62 +210,27 @@
 
   "use strict";
 
-  function eventsModel() {
-    var events = [];
-    var hosts = [];
-    var attendees = [];
-    var bottles = [];
+  function createEventService($http, $q, BASE_URL, eventsModel) {
 
-    var service = {
-      getAttendees: function getAttendees() {
-        return attendees;
-      },
-      getBottles: function getBottles() {
-        return bottles;
-      },
-      getEvents: function getEvents() {
-        return events;
-      },
-      getHosts: function getHosts() {
-        return hosts;
-      },
-      update: function update(data) {
-        var users = data.users;
+    return function (name, description) {
+      var deferred = $q.defer();
 
-        bottles = data.bottles;
+      $http.post(BASE_URL + "events/", {
+        name: name,
+        description: description
+      }).then(function (response) {
+        deferred.resolve(response.data);
+      }, function (response) {
+        console.error("Event was not created!");
+        deferred.reject(response.data);
+      });
 
-        // Update events...
-        _.forEach(data.events, function (event) {
-          event._hosts = [];
-          event._attendees = [];
-          event._bottles = [];
-
-          var userMap = _.indexBy(users, "id");
-
-          _.forEach(event.hosts, function (hostId) {
-            event._hosts.push(userMap[hostId]);
-          });
-
-          _.forEach(event.attendees, function (attendeeId) {
-            event._attendees.push(userMap[attendeeId]);
-          });
-
-          var bottleMap = _.indexBy(bottles, "id");
-
-          _.forEach(event.bottles, function (bottleId) {
-            event._bottles.push(bottleMap[bottleId]);
-          });
-        });
-
-        events = data.events;
-      }
+      return deferred.promise;
     };
-
-    return service;
   }
 
   angular.module("app")
-    .factory("eventsModel", [eventsModel]);
+    .factory("createEventService", ["$http", "$q", "BASE_URL", "eventsModel", createEventService]);
 
 })(window, window.angular);
 (function (window, angular, undefined) {
@@ -320,6 +285,68 @@
 
   angular.module("app")
     .factory("loadEventsService", ["$http", "$q", "BASE_URL", "eventsModel", loadEventsService]);
+
+})(window, window.angular);
+(function (window, angular, undefined) {
+
+  function eventsModel() {
+    var events = [];
+    var guests = [];
+    var hosts = [];
+
+    this.getEvents = function getEvents() {
+      return events;
+    };
+
+    this.getGuests = function getGuests() {
+      return guests;
+    };
+
+    this.getHosts = function getHosts() {
+      return hosts;
+    };
+
+    this.update = function update(data) {
+      var users = data.users;
+
+      // Update events...
+      _.forEach(data.events, function (event) {
+        event._guests = [];
+        event._hosts = [];
+
+        var userMap = _.indexBy(users, "id");
+
+        _.forEach(event.hosts, function (hostId) {
+          event._hosts.push(userMap[hostId]);
+        });
+
+        _.forEach(event.guests, function (attendeeId) {
+          event._guests.push(userMap[attendeeId]);
+        });
+      });
+
+      events = data.events;
+    };
+
+    this.updateOne = function updateOne(data) {};
+  }
+
+  angular.module("app")
+    .service("eventsModel", [eventsModel]);
+
+})(window, window.angular);
+(function (window, angular, undefined) {
+
+  "use strict";
+
+  function HomeController($scope, accountsService) {
+    $scope.hasUser = function hasUser() {
+      return accountsService.hasUser();
+    };
+  }
+
+  angular.module("app")
+    .controller("HomeController", ["$scope", "accountsService", HomeController]);
 
 })(window, window.angular);
 (function (window, angular, undefined) {
@@ -387,33 +414,28 @@
 
   "use strict";
 
-  function EventsController($scope, events, eventsService) {
-    $scope.attendedEvents = [];
-    $scope.hostedEvents = [];
+  function EventsController($scope, $state, createEventService) {
+    $scope.error = {};
+    $scope.form = "";
+    $scope.name = "";
+    $scope.description = "";
 
-    activate();
+    $scope.hasError = function hasError() {
+      return !_.isEmpty($scope.error);
+    };
 
-    function activate() {
-      $scope.attendedEvents = eventsService.getAttendedEvents();
-      $scope.hostedEvents = eventsService.getHostedEvents();
-    }
-  }
-
-  angular.module("app")
-    .controller("EventsController", ["$scope", "events", "eventsService", EventsController]);
-
-})(window, window.angular);
-(function (window, angular, undefined) {
-
-  "use strict";
-
-  function HomeController($scope, accountsService) {
-    $scope.hasUser = function hasUser() {
-      return accountsService.hasUser();
+    $scope.onSubmit = function onSubmit() {
+      createEventService($scope.name, $scope.description).then(function () {
+        $state.go("home");
+      }, function (response) {
+        $scope.error = response.data;
+        $scope.name = "";
+        $scope.description = "";
+      });
     };
   }
 
   angular.module("app")
-    .controller("HomeController", ["$scope", "accountsService", HomeController]);
+    .controller("EventsController", ["$scope", "$state", "createEventService", EventsController]);
 
 })(window, window.angular);
