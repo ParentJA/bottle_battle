@@ -7,19 +7,13 @@
     $httpProvider.defaults.xsrfCookieName = "csrftoken";
   }
 
-  function UiRouterConfig($stateProvider, $urlRouterProvider) {
+  function CoreRouterConfig($stateProvider, $urlRouterProvider) {
     $stateProvider
-      .state("my", {
-        url: "/my",
+      .state("app", {
+        url: "/app",
         template: "<div ui-view></div>",
-        resolve: {
-          events: function (eventsModel, loadEventsService) {
-            if (_.isEmpty(eventsModel.getEvents())) {
-              return loadEventsService();
-            }
-
-            return eventsModel;
-          }
+        data: {
+          loginRequired: true
         },
         abstract: true
       });
@@ -28,31 +22,43 @@
     $urlRouterProvider.otherwise("/");
   }
 
-  function UiRunner($rootScope, $state) {
+  function CoreRunner($rootScope, $state, AccountModel, navigationService) {
     $rootScope.$state = $state;
+    $rootScope.$on("$stateChangeStart", function (event, toState) {
+      // Close navigation.
+      navigationService.closeNavigation();
+
+      // Check authentication.
+      if (toState.data.loginRequired && !AccountModel.hasUser()) {
+        event.preventDefault();
+        $state.go("log_in");
+      }
+    });
   }
 
-  function MainController($scope, $state, accountsService) {
-    $scope.getUser = function getUser() {
-      return accountsService.getUser();
-    };
+  function MainController($scope, $state, AccountModel, logOutService, navigationService) {
+    $scope.navigationService = navigationService;
 
     $scope.hasUser = function hasUser() {
-      return accountsService.hasUser();
+      return AccountModel.hasUser();
     };
 
     $scope.logOut = function logOut() {
-      accountsService.logOut().then(function () {
-        $state.go("home");
+      logOutService().finally(function () {
+        $state.go("log_in");
       });
     };
   }
 
-  angular.module("app", ["ngCookies", "ui.bootstrap", "ui.router"])
+  angular.module("templates", []);
+
+  angular.module("app", ["templates", "example-accounts", "ui.bootstrap", "ui.router"])
     .constant("BASE_URL", "/api/v1/")
     .config(["$httpProvider", HttpConfig])
-    .config(["$stateProvider", "$urlRouterProvider", UiRouterConfig])
-    .run(["$rootScope", "$state", UiRunner])
-    .controller("MainController", ["$scope", "$state", "accountsService", MainController]);
+    .config(["$stateProvider", "$urlRouterProvider", CoreRouterConfig])
+    .run(["$rootScope", "$state", "AccountModel", "navigationService", CoreRunner])
+    .controller("MainController", [
+      "$scope", "$state", "AccountModel", "logOutService", "navigationService", MainController
+    ]);
 
 })(window, window.angular);

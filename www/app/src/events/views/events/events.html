@@ -1,0 +1,49 @@
+<div class="row">
+  <div class="col-lg-12">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          Hosting <span class="badge pull-right">{{ models.hosting.length }}</span>
+        </h4>
+      </div>
+      <div class="panel-body text-center" ng-if="models.hosting.length === 0">
+        You are not hosting any events...
+      </div>
+      <table class="table table-responsive" ng-if="models.hosting.length > 0">
+        <thead>
+        <tr>
+          <th>Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="event in models.hosting">
+          <td>{{ event.name }}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          Attending <span class="badge pull-right">{{ models.attending.length }}</span>
+        </h4>
+      </div>
+      <div class="panel-body text-center" ng-if="models.attending.length === 0">
+        You are not attending any events...
+      </div>
+      <table class="table table-responsive" ng-if="models.attending.length > 0">
+        <thead>
+        <tr>
+          <th>Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="event in models.attending">
+          <td>{{ event.name }}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

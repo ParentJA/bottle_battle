@@ -1,5 +1,3 @@
-__author__ = 'jason.a.parent@gmail.com (Jason Parent)'
-
 # Django imports...
 from django.conf import settings
 from django.conf.urls import include, url
@@ -7,14 +5,15 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.views.generic import TemplateView
 
-admin.autodiscover()
+__author__ = 'jason.a.parent@gmail.com (Jason Parent)'
 
 urlpatterns = [
-    url(r'^$', TemplateView.as_view(template_name='index.html')),
-    url(r'^accounts/', include('accounts.urls')),
-    url(r'^api/v1/events/', include('events.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^api/v1/accounts/', include('accounts.urls')),
+    url(r'^api/v1/users/', include('users.urls')),
+    url(r'^api/v1/events/', include('events.urls')),
+    url(r'^$', TemplateView.as_view(template_name='index.html')),
 ]
 
 # Serves static files in development environment...

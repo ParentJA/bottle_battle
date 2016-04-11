@@ -1,50 +1,43 @@
-__author__ = 'jason.a.parent@gmail.com (Jason Parent)'
-
 # Third-party imports...
-from rest_framework import status, viewsets
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
 
 # Django imports...
-from django.contrib.auth import get_user_model
+from django.db.models import Q
 
 # Local imports...
-from .models import Event, EventHost
+from users.models import UserProfile
+from users.serializers import UserProfileSerializer
+from .models import Event
 from .serializers import EventSerializer
-from .services import get_events_hosted_by_user
-from accounts.serializers import UserSerializer
 
-User = get_user_model()
+__author__ = 'jason.a.parent@gmail.com (Jason Parent)'
+
+
+def get_events(user):
+    return Event.objects.prefetch_related('hosts', 'guests').filter(Q(hosts__in=[user]) | Q(guests__in=[user]))
 
 
 class EventAPIView(viewsets.ViewSet):
-    def create(self, request):
-        name = request.data.get('name')
-        description = request.data.get('description')
-
-        event = Event(name=name, description=description)
-        event.save()
-
-        EventHost.objects.create(event=event, user=request.user)
-
-        return Response(status=status.HTTP_201_CREATED, data={
-            'events': EventSerializer([event], many=True).data,
-            'users': []
-        })
+    permission_classes = [IsAuthenticated]
 
     def list(self, request):
-        events = get_events_hosted_by_user(request.user)
+        events = get_events(request.user)
+        hosts = []
+        guests = []
 
-        # Get host and guests users...
-        users = set()
-
+        # Get host and guest users...
         for event in events:
-            for host in event.hosts.all():
-                users.add(host)
+            hosts.extend(event.hosts.all())
+            guests.extend(event.guests.all())
 
-            for guest in event.guests.all():
-                users.add(guest)
+        hosts = UserProfile.objects.filter(user__in=hosts)
+        guests = UserProfile.objects.filter(user__in=guests)
 
-        return Response(status=status.HTTP_200_OK, data={
-            'events': EventSerializer(events, many=True).data,
-            'users': UserSerializer(users, many=True).data
+        return Response(status=HTTP_200_OK, data={
+            'event': EventSerializer(events, many=True).data,
+            'host': UserProfileSerializer(set(hosts), many=True).data,
+            'guest': UserProfileSerializer(set(guests), many=True).data
         })

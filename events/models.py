@@ -1,10 +1,8 @@
-__author__ = 'jason.a.parent@gmail.com (Jason Parent)'
-
 # Django imports...
 from django.conf import settings
 from django.db import models
 
-AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL')
+__author__ = 'jason.a.parent@gmail.com (Jason Parent)'
 
 
 class Event(models.Model):
@@ -15,7 +13,7 @@ class Event(models.Model):
 
     # One or more users hosting the event...
     hosts = models.ManyToManyField(
-        AUTH_USER_MODEL,
+        settings.AUTH_USER_MODEL,
         through='EventHost',
         through_fields=('event', 'user'),
         related_name='events_hosted'
@@ -23,7 +21,7 @@ class Event(models.Model):
 
     # One or more users attending the event...
     guests = models.ManyToManyField(
-        AUTH_USER_MODEL,
+        settings.AUTH_USER_MODEL,
         through='EventGuest',
         through_fields=('event', 'user'),
         related_name='events_attended'
@@ -41,7 +39,7 @@ class EventHost(models.Model):
     """A user who starts an event."""
 
     event = models.ForeignKey('events.Event')
-    user = models.ForeignKey(AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
     class Meta:
         default_related_name = 'event_hosts'
@@ -54,7 +52,7 @@ class EventGuest(models.Model):
     """A user who joins an event."""
 
     event = models.ForeignKey('events.Event')
-    user = models.ForeignKey(AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
     class Meta:
         default_related_name = 'event_guests'

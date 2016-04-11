@@ -1,35 +1,68 @@
 var gulp = require("gulp");
-
+var addStream = require("add-stream");
+var angularTemplateCache = require("gulp-angular-templatecache");
 var concat = require("gulp-concat");
-var del = require("del");
-var jshint = require("gulp-jshint");
-var karma = require("karma");
-var rename = require("gulp-rename");
-var rimraf = require("gulp-rimraf");
-var uglify = require("gulp-uglify");
 
-var Server = karma.Server;
+function prepareTemplates() {
+  // Compile templates and write to dist.
+  return gulp.src(["./app/src/**/*.html", "!./app/src/index.html"])
+    .pipe(angularTemplateCache());
+}
 
-gulp.task("clean", function () {
-  return del(["./app/dist/scripts.js"]);
+gulp.task("index", function () {
+  // Copy index to dist.
+  return gulp.src("./app/src/index.html")
+    .pipe(gulp.dest("app/dist/"));
 });
 
-gulp.task("scripts", ["clean"], function () {
-  gulp.src("./app/src/**/*.js")
-    .pipe(jshint())
-    .pipe(jshint.reporter("default"))
-    //.pipe(concat("scripts.min.js"))
-    //.pipe(uglify())
-    .pipe(concat("scripts.js"))
-    .pipe(gulp.dest("./dist"));
+gulp.task("app-styles", function () {
+  // Compile styles and write to dist.
+  return gulp.src("./app/src/**/*.css")
+    .pipe(concat("./app-styles.css"))
+    .pipe(gulp.dest("./app/dist/styles/"));
 });
 
-gulp.task("test", function (done) {
-  new Server({
-    configFile: __dirname + "/karma.conf.js",
-    singleRun: true
-  }, done).start();
+gulp.task("vendor-styles", function () {
+  // Compile styles and write to dist.
+  return gulp.src([
+      "./bower_components/bootswatch/lumen/bootstrap.css",
+      "./bower_components/angular-bootstrap/ui-bootstrap-csp.css",
+      "./bower_components/font-awesome/css/font-awesome.css"
+    ])
+    .pipe(concat("./vendor-styles.css"))
+    .pipe(gulp.dest("./app/dist/styles/"));
 });
 
-//gulp.task("default", ["scripts"]);
-gulp.task("default", ["scripts", "test"]);
+gulp.task("app-scripts", function () {
+  // Compile scripts and write to dist.
+  return gulp.src("./app/src/**/*.js")
+    .pipe(addStream.obj(prepareTemplates()))
+    .pipe(concat("./app-scripts.js"))
+    .pipe(gulp.dest("./app/dist/scripts/"));
+});
+
+gulp.task("vendor-scripts", function () {
+  // Compile scripts and write to dist.
+  return gulp.src([
+      "./bower_components/jquery/dist/jquery.js",
+      "./bower_components/bootstrap/dist/js/bootstrap.js",
+      "./bower_components/lodash/dist/lodash.js",
+      "./bower_components/moment/moment.js",
+      "./bower_components/angular/angular.js",
+      "./bower_components/angular-cookies/angular-cookies.js",
+      "./bower_components/angular-ui-router/release/angular-ui-router.js",
+      "./bower_components/example-accounts/example-accounts.js",
+      "./bower_components/angular-bootstrap/ui-bootstrap.js",
+      "./bower_components/angular-bootstrap/ui-bootstrap-tpls.js"
+    ])
+    .pipe(concat("./vendor-scripts.js"))
+    .pipe(gulp.dest("./app/dist/scripts/"));
+});
+
+gulp.task("vendor-fonts", function () {
+  // Copy fonts to dist.
+  return gulp.src(["./bower_components/font-awesome/fonts/fontawesome-webfont.*"])
+    .pipe(gulp.dest("./app/dist/fonts/"));
+});
+
+gulp.task("default", ["index", "app-styles", "vendor-styles", "app-scripts", "vendor-scripts", "vendor-fonts"]);
