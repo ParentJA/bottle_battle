@@ -1,7 +1,7 @@
-__author__ = 'jason.a.parent@gmail.com (Jason Parent)'
-
 # Standard library imports...
 import os
+
+__author__ = 'jason.a.parent@gmail.com (Jason Parent)'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -10,8 +10,6 @@ SECRET_KEY = 'az#p-g^l&lr#m4ub#pj2=8lzlu!ikefjls@d32u*10uokxlchp'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
-AUTH_USER_MODEL = 'accounts.User'
 
 DEFAULT_APPS = (
     'django.contrib.admin',
@@ -23,13 +21,15 @@ DEFAULT_APPS = (
 )
 
 THIRD_PARTY_APPS = (
+    'accounts',
     'debug_toolbar',
     'localflavor',
     'rest_framework',
 )
 
 LOCAL_APPS = (
-    'accounts',
+    'users',
+    'events',
 )
 
 INSTALLED_APPS = ('grappelli',) + DEFAULT_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -62,7 +62,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'www/app/'),
+            os.path.join(BASE_DIR, 'www/app/dist'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -98,7 +98,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'www/app/dist'),
 )
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -106,8 +106,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-
-try:
-    from .local_settings import *
-except ImportError:
-    pass

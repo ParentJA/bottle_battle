@@ -1,7 +1,7 @@
 # Directories...
-bower_components/
-node_modules/
-static/
+/www/bower_components
+/www/node_modules
+/www/dist
+/static
 
-# Files...
-www/app/scripts.js
+*.sqlite3
