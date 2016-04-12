@@ -67,19 +67,60 @@
   "use strict";
 
   function EventsRouterConfig($stateProvider) {
-    $stateProvider.state("app.events", {
-      url: "/events",
-      templateUrl: "events/views/events/events.html",
-      data: {
-        loginRequired: true
-      },
-      resolve: {
-        events: function (EventResource) {
-          return EventResource.list();
-        }
-      },
-      controller: "EventsController"
-    });
+    $stateProvider
+      .state("app.events", {
+        url: "/events",
+        template: "<div ui-view></div>",
+        data: {
+          loginRequired: true
+        },
+        abstract: true
+      })
+
+      // Shows the user's relevant events (events he is hosting or attending).
+      .state("app.events.dashboard", {
+        url: "/dashboard",
+        templateUrl: "events/views/dashboard/dashboard.html",
+        data: {
+          loginRequired: true
+        },
+        resolve: {
+          events: function (EventResource) {
+            return EventResource.list();
+          }
+        },
+        controller: "EventDashboardController"
+      })
+
+      // Shows the event creation step 1 (event registration).
+      .state("app.events.step1", {
+        url: "/step1",
+        templateUrl: "events/views/step1/step1.html",
+        data: {
+          loginRequired: true
+        },
+        controller: "EventStep1Controller"
+      })
+
+      // Shows the event creation step 2 (bottle registration).
+      .state("app.events.step2", {
+        url: "/step2",
+        templateUrl: "events/views/step2/step2.html",
+        data: {
+          loginRequired: true
+        },
+        controller: "EventStep2Controller"
+      })
+
+      // Shows the event creation step 3 (guest registration).
+      .state("app.events.step3", {
+        url: "/step3",
+        templateUrl: "events/views/step3/step3.html",
+        data: {
+          loginRequired: true
+        },
+        controller: "EventStep3Controller"
+      });
   }
 
   angular.module("app")
@@ -251,6 +292,54 @@
 
   "use strict";
 
+  function EventBottleResource($http, $q, BASE_URL, Event) {
+    this.create = function create(bottle) {
+      var deferred = $q.defer();
+
+      $http.post(BASE_URL + "events/bottle/", bottle).then(function (response) {
+        Event.updateDict(response.data);
+        deferred.resolve(Event);
+      }, function (response) {
+        console.error("Failed to create event bottle.");
+        deferred.reject(response.data);
+      });
+
+      return deferred.promise;
+    };
+  }
+
+  angular.module("app")
+    .service("EventBottleResource", ["$http", "$q", "BASE_URL", "Event", EventBottleResource]);
+
+})(window, window.angular);
+(function (window, angular, undefined) {
+
+  "use strict";
+
+  function EventGuestResource($http, $q, BASE_URL, Event) {
+    this.create = function create(guest) {
+      var deferred = $q.defer();
+
+      $http.post(BASE_URL + "events/guest/", guest).then(function (response) {
+        Event.updateDict(response.data);
+        deferred.resolve(Event);
+      }, function (response) {
+        console.error("Failed to create event guest.");
+        deferred.reject(response.data);
+      });
+
+      return deferred.promise;
+    };
+  }
+
+  angular.module("app")
+    .service("EventGuestResource", ["$http", "$q", "BASE_URL", "Event", EventGuestResource]);
+
+})(window, window.angular);
+(function (window, angular, undefined) {
+
+  "use strict";
+
   function EventResource($http, $q, BASE_URL, Event) {
     this.list = function list() {
       var deferred = $q.defer();
@@ -259,7 +348,21 @@
         Event.updateList(response.data);
         deferred.resolve(Event);
       }, function (response) {
-        console.error("Failed to load events.");
+        console.error("Failed to list events.");
+        deferred.reject(response.data);
+      });
+
+      return deferred.promise;
+    };
+
+    this.create = function create(event) {
+      var deferred = $q.defer();
+
+      $http.post(BASE_URL + "events/event/", event).then(function (response) {
+        Event.updateDict(response.data);
+        deferred.resolve(Event);
+      }, function (response) {
+        console.error("Failed to create event.");
         deferred.reject(response.data);
       });
 
@@ -452,7 +555,67 @@
 
   "use strict";
 
-  function EventsController($scope, events, eventService) {
+  function EventStep1Controller($scope, $state, EventResource) {
+    $scope.error = {};
+    $scope.form = "";
+    $scope.models = {
+      name: null,
+      description: null
+    };
+
+    $scope.hasError = function hasError() {
+      return !_.isEmpty($scope.error);
+    };
+
+    $scope.onSubmit = function onSubmit() {
+      EventResource.create($scope.models).then(function () {
+        $state.go("app.events.step2");
+      }, function (response) {
+        $scope.error = response;
+      });
+    };
+  }
+
+  angular.module("app")
+    .controller("EventStep1Controller", ["$scope", "$state", "EventResource", EventStep1Controller]);
+
+})(window, window.angular);
+(function (window, angular, undefined) {
+
+  "use strict";
+
+  function EventStep2Controller($scope, $state, EventBottleResource) {
+    $scope.error = {};
+    $scope.form = "";
+    $scope.models = {
+      bottle1: null,
+      bottle2: null,
+      bottle3: null,
+      bottle4: null
+    };
+
+    $scope.hasError = function hasError() {
+      return !_.isEmpty($scope.error);
+    };
+
+    $scope.onSubmit = function onSubmit() {
+      EventBottleResource.create($scope.models).then(function () {
+        $state.go("app.events.step3");
+      }, function (response) {
+        $scope.error = response;
+      });
+    };
+  }
+
+  angular.module("app")
+    .controller("EventStep2Controller", ["$scope", "$state", "EventBottleResource", EventStep2Controller]);
+
+})(window, window.angular);
+(function (window, angular, undefined) {
+
+  "use strict";
+
+  function EventDashboardController($scope, events, eventService) {
     $scope.models = {
       hosting: eventService.getEventsHosting(),
       attending: eventService.getEventsAttending()
@@ -460,9 +623,37 @@
   }
 
   angular.module("app")
-    .controller("EventsController", [
-      "$scope", "events", "eventService", EventsController
+    .controller("EventDashboardController", [
+      "$scope", "events", "eventService", EventDashboardController
     ]);
+
+})(window, window.angular);
+(function (window, angular, undefined) {
+
+  "use strict";
+
+  function EventStep3Controller($scope, $state, EventGuestResource) {
+    $scope.error = {};
+    $scope.form = "";
+    $scope.models = {
+      guests: null
+    };
+
+    $scope.hasError = function hasError() {
+      return !_.isEmpty($scope.error);
+    };
+
+    $scope.onSubmit = function onSubmit() {
+      EventGuestResource.create($scope.models).then(function () {
+        $state.go("app.events.dashboard");
+      }, function (response) {
+        $scope.error = response;
+      });
+    };
+  }
+
+  angular.module("app")
+    .controller("EventStep3Controller", ["$scope", "$state", "EventGuestResource", EventStep3Controller]);
 
 })(window, window.angular);
 (function (window, angular, undefined) {
@@ -598,8 +789,11 @@
     .controller("SignUpController", ["$scope", "$state", "signUpService", SignUpController]);
 
 })(window, window.angular);
-angular.module("templates").run(["$templateCache", function($templateCache) {$templateCache.put("events/views/events/events.html","<div class=\"row\">\n  <div class=\"col-lg-12\">\n    <div class=\"panel panel-default\">\n      <div class=\"panel-heading\">\n        <h4 class=\"panel-title\">\n          Hosting <span class=\"badge pull-right\">{{ models.hosting.length }}</span>\n        </h4>\n      </div>\n      <div class=\"panel-body text-center\" ng-if=\"models.hosting.length === 0\">\n        You are not hosting any events...\n      </div>\n      <table class=\"table table-responsive\" ng-if=\"models.hosting.length > 0\">\n        <thead>\n        <tr>\n          <th>Name</th>\n        </tr>\n        </thead>\n        <tbody>\n        <tr ng-repeat=\"event in models.hosting\">\n          <td>{{ event.name }}</td>\n        </tr>\n        </tbody>\n      </table>\n    </div>\n\n    <div class=\"panel panel-default\">\n      <div class=\"panel-heading\">\n        <h4 class=\"panel-title\">\n          Attending <span class=\"badge pull-right\">{{ models.attending.length }}</span>\n        </h4>\n      </div>\n      <div class=\"panel-body text-center\" ng-if=\"models.attending.length === 0\">\n        You are not attending any events...\n      </div>\n      <table class=\"table table-responsive\" ng-if=\"models.attending.length > 0\">\n        <thead>\n        <tr>\n          <th>Name</th>\n        </tr>\n        </thead>\n        <tbody>\n        <tr ng-repeat=\"event in models.attending\">\n          <td>{{ event.name }}</td>\n        </tr>\n        </tbody>\n      </table>\n    </div>\n  </div>\n</div>");
-$templateCache.put("landing/views/landing/landing.html","<div class=\"middle-center\">\n  <h1>Welcome to Bottle Battle</h1>\n  <div ng-show=\"hasUser()\">\n    <a class=\"btn btn-large btn-primary\" ui-sref=\"app.events\">Continue to events</a>\n  </div>\n  <div ng-hide=\"hasUser()\">\n    <a class=\"btn btn-large btn-primary\" ui-sref=\"log_in\">Log in</a>\n    <a class=\"btn btn-large btn-primary\" ui-sref=\"sign_up\">Sign up</a>\n  </div>\n</div>");
+angular.module("templates").run(["$templateCache", function($templateCache) {$templateCache.put("events/views/step1/step1.html","<div class=\"row\">\n  <div class=\"col-lg-12\">\n    <div class=\"panel panel-default\">\n      <div class=\"panel-heading\">\n        <h4 class=\"panel-title\">Step 1: Create event</h4>\n      </div>\n      <div class=\"panel-body\">\n        <form name=\"form\" novalidate ng-submit=\"onSubmit()\">\n          <div class=\"alert alert-danger\" ng-if=\"hasError()\">{{ error.detail }}</div>\n          <div class=\"form-group\">\n            <label for=\"name\">Name:</label>\n            <input id=\"name\" class=\"form-control\" type=\"text\" ng-model=\"models.name\" required>\n          </div>\n          <div class=\"form-group\">\n            <label for=\"description\">Description:</label>\n            <textarea id=\"description\" class=\"form-control\" rows=\"10\" ng-model=\"models.description\" required></textarea>\n          </div>\n          <button class=\"btn btn-primary btn-block\" type=\"submit\" ng-disabled=\"form.$invalid\">Create</button>\n        </form>\n      </div>\n    </div>\n  </div>\n</div>");
+$templateCache.put("events/views/step2/step2.html","<div class=\"row\">\n  <div class=\"col-lg-12\">\n    <div class=\"panel panel-default\">\n      <div class=\"panel-heading\">\n        <h4 class=\"panel-title\">Step 2: Add bottles</h4>\n      </div>\n      <div class=\"panel-body\">\n        <form name=\"form\" novalidate ng-submit=\"onSubmit()\">\n          <div class=\"alert alert-danger\" ng-if=\"hasError()\">{{ error.detail }}</div>\n          <div class=\"form-group\">\n            <label for=\"bottle1\">Bottle 1:</label>\n            <input id=\"bottle1\" class=\"form-control\" type=\"text\" ng-model=\"models.bottle1\" required>\n          </div>\n          <div class=\"form-group\">\n            <label for=\"bottle2\">Bottle 2:</label>\n            <input id=\"bottle2\" class=\"form-control\" type=\"text\" ng-model=\"models.bottle2\" required>\n          </div>\n          <div class=\"form-group\">\n            <label for=\"bottle3\">Bottle 3:</label>\n            <input id=\"bottle3\" class=\"form-control\" type=\"text\" ng-model=\"models.bottle3\" required>\n          </div>\n          <div class=\"form-group\">\n            <label for=\"bottle4\">Bottle 4:</label>\n            <input id=\"bottle4\" class=\"form-control\" type=\"text\" ng-model=\"models.bottle4\" required>\n          </div>\n          <button class=\"btn btn-primary btn-block\" type=\"submit\" ng-disabled=\"form.$invalid\">Create</button>\n        </form>\n      </div>\n    </div>\n  </div>\n</div>");
+$templateCache.put("events/views/dashboard/dashboard.html","<div class=\"row\">\n  <div class=\"col-lg-12\">\n    <div class=\"panel panel-default\">\n      <div class=\"panel-heading\">\n        <h4 class=\"panel-title\">\n          Hosting <span class=\"badge pull-right\">{{ models.hosting.length }}</span>\n        </h4>\n      </div>\n      <div class=\"panel-body\">\n        <a class=\"btn btn-primary\" href ui-sref=\"app.events.step1\">Create event</a>\n      </div>\n      <div class=\"panel-body text-center\" ng-if=\"models.hosting.length === 0\">\n        You are not hosting any events...\n      </div>\n      <table class=\"table table-responsive\" ng-if=\"models.hosting.length > 0\">\n        <thead>\n        <tr>\n          <th>Name</th>\n        </tr>\n        </thead>\n        <tbody>\n        <tr ng-repeat=\"event in models.hosting\">\n          <td>{{ event.name }}</td>\n        </tr>\n        </tbody>\n      </table>\n    </div>\n\n    <div class=\"panel panel-default\">\n      <div class=\"panel-heading\">\n        <h4 class=\"panel-title\">\n          Attending <span class=\"badge pull-right\">{{ models.attending.length }}</span>\n        </h4>\n      </div>\n      <div class=\"panel-body text-center\" ng-if=\"models.attending.length === 0\">\n        You are not attending any events...\n      </div>\n      <table class=\"table table-responsive\" ng-if=\"models.attending.length > 0\">\n        <thead>\n        <tr>\n          <th>Name</th>\n        </tr>\n        </thead>\n        <tbody>\n        <tr ng-repeat=\"event in models.attending\">\n          <td>{{ event.name }}</td>\n        </tr>\n        </tbody>\n      </table>\n    </div>\n  </div>\n</div>");
+$templateCache.put("events/views/step3/step3.html","<div class=\"row\">\n  <div class=\"col-lg-12\">\n    <div class=\"panel panel-default\">\n      <div class=\"panel-heading\">\n        <h4 class=\"panel-title\">Step 3: Add guests</h4>\n      </div>\n      <div class=\"panel-body\">\n        <form name=\"form\" novalidate ng-submit=\"onSubmit()\">\n          <div class=\"alert alert-danger\" ng-if=\"hasError()\">{{ error.detail }}</div>\n          <div class=\"form-group\">\n            <label for=\"guests\">Guests:</label>\n            <textarea id=\"guests\" class=\"form-control\" rows=\"10\" ng-model=\"models.guests\" required></textarea>\n          </div>\n          <button class=\"btn btn-primary btn-block\" type=\"submit\" ng-disabled=\"form.$invalid\">Create</button>\n        </form>\n      </div>\n    </div>\n  </div>\n</div>");
+$templateCache.put("landing/views/landing/landing.html","<div class=\"middle-center\">\n  <h1>Welcome to Bottle Battle</h1>\n  <div ng-show=\"hasUser()\">\n    <a class=\"btn btn-large btn-primary\" ui-sref=\"app.events.dashboard\">Continue to events</a>\n  </div>\n  <div ng-hide=\"hasUser()\">\n    <a class=\"btn btn-large btn-primary\" ui-sref=\"log_in\">Log in</a>\n    <a class=\"btn btn-large btn-primary\" ui-sref=\"sign_up\">Sign up</a>\n  </div>\n</div>");
 $templateCache.put("users/views/log_in/log_in.html","<div class=\"row\">\n  <div class=\"col-lg-offset-4 col-lg-4\">\n    <div class=\"panel panel-default\">\n      <div class=\"panel-heading\">\n        <h4 class=\"panel-title\">Log in</h4>\n      </div>\n      <div class=\"panel-body\">\n        <form name=\"form\" novalidate ng-submit=\"onSubmit()\">\n          <div class=\"alert alert-danger\" ng-if=\"hasError()\">{{ error.detail }}</div>\n          <div class=\"form-group\">\n            <label for=\"username\">Username:</label>\n            <input id=\"username\" class=\"form-control\" type=\"text\" ng-model=\"username\" required>\n          </div>\n          <div class=\"form-group\">\n            <label for=\"password\">Password:</label>\n            <input id=\"password\" class=\"form-control\" type=\"password\" ng-model=\"password\" required>\n          </div>\n          <button class=\"btn btn-primary btn-block\" type=\"submit\" ng-disabled=\"form.$invalid\">Log in\n          </button>\n        </form>\n      </div>\n    </div>\n    <p class=\"text-center\">Don\'t have an account? <a href ui-sref=\"sign_up\">Sign up!</a></p>\n  </div>\n</div>");
 $templateCache.put("users/views/profile_edit/profile_edit.html","<div class=\"row\">\n  <div class=\"col-lg-offset-4 col-lg-4\">\n    <div class=\"panel panel-default\">\n      <div class=\"panel-heading\">\n        <h4 class=\"panel-title\">Profile</h4>\n      </div>\n      <div class=\"panel-body\">\n        <form name=\"form\" novalidate ng-submit=\"onSubmit()\">\n          <div class=\"form-group\">\n            <label for=\"first-name\">First name:</label>\n            <input id=\"first-name\" class=\"form-control\" type=\"text\" ng-value=\"models.first_name\" ng-model=\"models.first_name\" required>\n          </div>\n          <div class=\"form-group\">\n            <label for=\"last-name\">Last name:</label>\n            <input id=\"last-name\" class=\"form-control\" type=\"text\" ng-value=\"models.last_name\" ng-model=\"models.last_name\" required>\n          </div>\n          <div class=\"form-group\">\n            <label for=\"address\">Address:</label>\n            <input id=\"address\" class=\"form-control\" type=\"text\" ng-value=\"models.address_1\" ng-model=\"models.address_1\" required>\n          </div>\n          <div class=\"form-group\">\n            <label for=\"address-2\">Address (line 2):</label>\n            <input id=\"address-2\" class=\"form-control\" type=\"text\" ng-value=\"models.address_2\" ng-model=\"models.address_2\">\n          </div>\n          <div class=\"form-group\">\n            <label for=\"city\">City:</label>\n            <input id=\"city\" class=\"form-control\" type=\"text\" ng-value=\"models.city\" ng-model=\"models.city\" required>\n          </div>\n          <div class=\"form-group\">\n            <label for=\"state\">State:</label>\n            <input id=\"state\" class=\"form-control\" type=\"text\" ng-value=\"models.state\" ng-model=\"models.state\" required>\n          </div>\n          <div class=\"form-group\">\n            <label for=\"zip-code\">Zip code:</label>\n            <input id=\"zip-code\" class=\"form-control\" type=\"text\" ng-value=\"models.zip_code\" ng-model=\"models.zip_code\" required>\n          </div>\n          <div class=\"form-group\">\n            <label for=\"phone-number\">Phone number:</label>\n            <input id=\"phone-number\" class=\"form-control\" type=\"text\" ng-value=\"models.phone_number\" ng-model=\"models.phone_number\" required>\n          </div>\n          <button class=\"btn btn-primary btn-block\" type=\"submit\" ng-disabled=\"form.$invalid\">Update</button>\n        </form>\n      </div>\n    </div>\n  </div>\n</div>");
 $templateCache.put("users/views/profile_detail/profile_detail.html","<div class=\"row\">\n  <div class=\"col-lg-offset-4 col-lg-4\">\n    <div class=\"text-center\">\n      <a href ui-sref=\"app.profile.edit\">\n        <img class=\"img-circle center-block\" ng-src=\"{{ models.photo }}\" width=\"160\">\n      </a>\n      <div class=\"details-display\">\n        <div ng-if=\"selectedDetail === \'name\'\">\n          <p>Hi, my name is</p>\n          <h4>{{ models.full_name }}</h4>\n        </div>\n        <div ng-if=\"selectedDetail === \'email\'\">\n          <p>My email address is</p>\n          <h4>{{ models.email }}</h4>\n        </div>\n        <div ng-if=\"selectedDetail === \'address\'\">\n          <p>My address is</p>\n          <h4>{{ models.full_address }}</h4>\n        </div>\n        <div ng-if=\"selectedDetail === \'phone\'\">\n          <p>My phone number is</p>\n          <h4>{{ models.phone_number }}</h4>\n        </div>\n      </div>\n      <ul class=\"details-list list-inline\">\n        <li ng-mouseenter=\"setSelectedDetail(\'name\')\" ng-click=\"setSelectedDetail(\'name\')\">\n          <i class=\"fa fa-user\"></i>\n        </li>\n        <li ng-mouseenter=\"setSelectedDetail(\'email\')\" ng-click=\"setSelectedDetail(\'email\')\">\n          <i class=\"fa fa-envelope\"></i>\n        </li>\n        <li ng-mouseenter=\"setSelectedDetail(\'address\')\" ng-click=\"setSelectedDetail(\'address\')\">\n          <i class=\"fa fa-map-marker\"></i>\n        </li>\n        <li ng-mouseenter=\"setSelectedDetail(\'phone\')\" ng-click=\"setSelectedDetail(\'phone\')\">\n          <i class=\"fa fa-phone\"></i>\n        </li>\n      </ul>\n    </div>\n  </div>\n</div>");

@@ -6,6 +6,9 @@
           Hosting <span class="badge pull-right">{{ models.hosting.length }}</span>
         </h4>
       </div>
+      <div class="panel-body">
+        <a class="btn btn-primary" href ui-sref="app.events.step1">Create event</a>
+      </div>
       <div class="panel-body text-center" ng-if="models.hosting.length === 0">
         You are not hosting any events...
       </div>
