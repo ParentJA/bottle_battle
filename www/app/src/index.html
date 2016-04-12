@@ -24,8 +24,8 @@
     </div>
     <div id="navbar-content" class="collapse navbar-collapse" uib-collapse="!navigationService.isNavigationOpen()">
       <ul class="nav navbar-nav navbar-right" ng-if="hasUser()">
-        <li ng-class="{active: $state.is('app.events')}">
-          <a ui-sref="app.events">Events</a>
+        <li ng-class="{active: $state.includes('app.events')}">
+          <a ui-sref="app.events.dashboard">Events</a>
         </li>
         <li ng-class="{active: $state.includes('app.profile')}">
           <a ui-sref="app.profile.detail">Profile</a>

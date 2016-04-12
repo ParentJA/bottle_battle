@@ -10,7 +10,21 @@
         Event.updateList(response.data);
         deferred.resolve(Event);
       }, function (response) {
-        console.error("Failed to load events.");
+        console.error("Failed to list events.");
+        deferred.reject(response.data);
+      });
+
+      return deferred.promise;
+    };
+
+    this.create = function create(event) {
+      var deferred = $q.defer();
+
+      $http.post(BASE_URL + "events/event/", event).then(function (response) {
+        Event.updateDict(response.data);
+        deferred.resolve(Event);
+      }, function (response) {
+        console.error("Failed to create event.");
         deferred.reject(response.data);
       });
 

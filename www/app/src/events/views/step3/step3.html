@@ -1,0 +1,19 @@
+<div class="row">
+  <div class="col-lg-12">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title">Step 3: Add guests</h4>
+      </div>
+      <div class="panel-body">
+        <form name="form" novalidate ng-submit="onSubmit()">
+          <div class="alert alert-danger" ng-if="hasError()">{{ error.detail }}</div>
+          <div class="form-group">
+            <label for="guests">Guests:</label>
+            <textarea id="guests" class="form-control" rows="10" ng-model="models.guests" required></textarea>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit" ng-disabled="form.$invalid">Create</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
